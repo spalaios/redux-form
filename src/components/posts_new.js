@@ -1,5 +1,9 @@
 import React,{Component} from 'react';
 import {Field, reduxForm} from 'redux-form';
+import {Link} from 'react-router-dom';
+import {connect} from 'react-redux';
+import cretePost from '../actions/formPostAjax';
+import {bindActionCreators} from 'redux';
 // the reduxForm is similar to connect function in react-redux
 //basically reduxForm help us connect the component to communicate with the formReducer
 //that we set up in the reducer index.js
@@ -22,21 +26,28 @@ class PostsNew extends Component {
          * it tells the Field component in the render function to keep track of the input element that we are returning from renderTitleField.
          * also if we are passing any custom props in Field componet eg: labelToDisplay we can access that props inside renderField.
          */
+        console.log(field);
         return (
             <div className="form-group">
                 <label>{field.labelToDisplay}</label>
                 <input 
-                    className="form-control"
+                    className="form-control has-danger"
                     type="text"
                     {...field.input}
                 />
-                {field.meta.error}
+                <div className="text-help">
+                    {field.meta.touched ? field.meta.error : ''}
+                </div>
             </div>
         )
     }
 
     onSubmit(values) {
         //the values here we have is coz the handleSubmit passed to its callbak function after successful validation
+        this.props.cretePost(values, () => {
+            this.props.history.push('/'); //this history property is passed by the Route component since it has component props on it so it passses
+            //various helper function and history is one of them.
+        });
         console.log(values);
     }
 
@@ -64,7 +75,7 @@ class PostsNew extends Component {
                     />
                     <Field
                         labelToDisplay="Post category"
-                        name="category"
+                        name="categories"
                         component={this.renderField}
                     />
                     <Field
@@ -73,6 +84,7 @@ class PostsNew extends Component {
                         component={this.renderField}
                     />
                     <button type="submit" className="btn btn-primary">Submit</button>
+                    <Link className="btn btn-warning ml-3" to="/">Cancel</Link>
                 </form>
             </div>
         )
@@ -107,9 +119,13 @@ function validate(values) {
    return errors;
 }
 
-
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({cretePost}, dispatch)
+}
 
 export default reduxForm({
     validate,
     form: 'PostNewForm'  //this is giving a name to a form it should just be unique as we can many forms in our app so it should be unique enough to identify it
-})(PostsNew);
+})(
+   connect(null, mapDispatchToProps)(PostsNew) //way of merging connect like helper with connect
+);
